@@ -1,0 +1,23 @@
+{ 
+	"commandOrchestrator": {
+		"numCommands": 5,
+		"commands": [
+			{"name" : "notepad.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"},
+			{"name" : "notepad.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"},
+			{"name" : "notepad.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"}
+		],
+		"compoundCommands": [
+			{"compoundCommand": [
+				{"name" : "notepad.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"},
+				{"name" : "explorer.exe", "path": "", "args" : "C:\\temp", "workingDir" : ""},
+				{"name" : "a.bat", "path": "", "args" : "C:\\temp", "workingDir" : ""} 
+			]},
+			{"compoundCommand": [
+				{"name" : "notepad.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"},
+				{"name" : "explorer.exe", "path": "", "args" : "C:\temp", "workingDir" : ""},
+				{"name" : "calc.exe", "path": "", "args" : "C:\temp", "workingDir" : ""} 
+			]}
+		]
+	}
+}	
+	

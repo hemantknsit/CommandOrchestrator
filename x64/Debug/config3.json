@@ -1,0 +1,10 @@
+{ 
+	"commandOrchestrator": {
+		"numCommands": 2,
+		"commands": [
+			{"name" : "explorer.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"},
+			{"name" : "calc.exe", "path" : "", "args" : "test.txt", "workingDir" : "C:\\temp"}	
+		]
+	}
+}	
+	
