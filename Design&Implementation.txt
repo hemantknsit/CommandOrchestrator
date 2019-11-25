@@ -1,0 +1,74 @@
+ThirdParty Libraries
+1. Boost Lockfree. Boost software license: https://www.boost.org/users/license.html
+2. RapidJSON. BSD license: https://github.com/Tencent/rapidjson/blob/master/license.txt
+
+Decisions Rationale
+1. JSON/XML? 
+    Use JSON as it is more compact and does not suffer too much in readability compared to XML
+	Also in future there might be need to send config over network, where JSON will prove more
+	compact.(Currently config file is used)
+2. JSON Library to use?
+     a) Tried using https://github.com/nlohmann/json. Seemed to have a convenient interface. 
+	 Had a 100+ mb download
+	 b) Settled on RapidJSON, much smaller footprint and maybe faster as well. Has in-situ parser 
+	 that needs to be explored. 
+3. Running commands
+     a) Intention: Use a low level interface with as less overhead as possible so that job
+	 can be done efficiently without compromising on features
+	 b) Options: CreateProcess vs ShellExecute vs system vs others
+	 c) CreateProcess looked the lowest level and did not have any red flags. In the limited
+	 testing done, it worked well.
+4. Process Termination
+	a) Intention: Try to use an async method so that overall scalability could be high
+	b) Options: ExitProcess vs WMI vs process exit notification using RegisterWaitForSingleObject
+	c) Explored WMI using wbemtest windows tool and ran the example at below link
+   https://docs.microsoft.com/en-us/windows/win32/wmisdk/example--receiving-event-notifications-through-wmi-
+	d) Found that WMI usage might not be very *efficient* on the MSDN forums at below link(old-2008)
+   (https://social.msdn.microsoft.com/Forums/vstudio/en-US/1c82bfb2-7c90-4b08-b34d-e64d1b9af006/wmi-event-watcher-query-causes-high-cpu-usage-for-wmiprvseexe-and-slowdown?forum=netfxbcl)
+	e) Looked for options and found the one for RegisterWaitForSingleObject and that looked neat. 
+	   (i)  Also contributed to a simpler overall design.
+	   (ii) Also threads used for waiting on the process completion are managed by Windows 
+	   effectively, so less stuff to manage.
+	f) Credits: Adapted code from https://ikriv.com/blog/?p=1431. No license mentioned.
+5. Overall Design
+    a) Intention: Wanted to use an effective and simple way to increment stats by the various 
+	threads that might get spawned
+	b) Options were: 
+		(i) use global variables without locking(eventually consistent) 
+		(ii) Atomic variables 
+		(iii) Shared locks
+	c) As the intention was also to minimize contention so perf could be good, using a 
+		single(main) thread for 
+	    (i) 	stats updation 
+		(ii)	Spawning commands as per config
+		(iii) 	Monitoring end of process 
+		(iv)    Printing stats
+		looked like a neat solution, so used it. Using a lock free Q to communicate process completion from the async handler. 
+		If performance is not good enough, other options can be looked at.
+6. Lockfree Q
+     a) MoodyCamel and others were evaluated
+	 b) Finally settled on boost coz of reasonable assurance of quality and actively 
+	 maintained codebase and wider adoption
+
+Implementation Notes
+1. For commands such as "explorer.exe test.txt"(launches test.txt in notepad) and calc.exe(launches calculator.exe),
+   an intermediate process spawns the eventual process. The tools logs completion when the intermediate process 
+   completes. This is logically correct but maynot be what the user wants..
+2. Limited testing done with the JSON config files alongside.
+3. Visual Studio Solution and project is build using VS2019
+4. The executable needs to be run on command line, expects the json config file as argument, and will print stats
+   every 1 second
+
+Implementation To-dos(ran out of time to do the following)
+1. Once a command completion is done, delete the process object thus freeing the handle for the kernel.
+	Currently this gets done at program exit
+2. Better testing
+    a) Test with more type of commands(16 bit, with UI, without UI -set options on createProcess etc)
+	b) Test with bigger JSON files, with only composite commands etc
+	c) Test on multiple versions of Windows(currently only dev machine Win 10 was used)
+2. Integrate logging mechanism (spdlog or the like)
+3. For commands that failed to start, error shown on console. Logging it could be done
+4. Refactor code and classes so that they are easier to change and maintain. Currently config class knows 
+about how Command and CompoundCommand work; and the orchestrator is more complex as when something finishes
+it needs to know whether it is command or compundCommand. CompoundCommand can be a seperate class and the 
+classes can have behavior on handling events such as ProcessCompletion etc.

@@ -1,0 +1,45 @@
+Requirements
+1. The commands should be input in a machine parsable format (JSON/XML).
+2. The orchestrator should read the incoming command and execute them concurrently.
+3. At any given time, the user should be able to see the current state of the orchestrator:
+      a.  How many commands have been executed with completion status.
+      b.  How many commands are in progress.
+      c.  How many commands are pending.
+4. Some commands might have inter-dependencies that should be expressible in the input to the orchestrator.
+      a.  The orchestrator should honour such dependencies.
+
+
+
+Command Orchestrator
+As it is a simple command orchestrator, the following assumptions are being made for the first release. 
+  a) Orchestrator will not support APIs to query command status.  
+  b) Orchestrator will not use file storage to persist data across different runs of the orchestrator
+  c) A command line interface on a Windows machine will be provided. Linux/iOS/Android can be supported in future versions
+  d) Web Interface if desired can be supported later. 
+  e) Globalization/localization will not be supported for now. 
+  f) If a command fails, the failure will be recorded. The failure will however, not stop further command processing.
+  g) Each command can be run for a maximum of a <x seconds> of time, where x is configurable. If it takes more than that, command will be killed
+  h) Independent commands are assumed to not create a deadlock scenario by acquiring competing resources which are constrained in number. 
+  i) Orchestrator will be designed to operate on a single machine. Scaling across different machines is not planned for now.  
+  j) It is assumed that the commands can be launched using the process/shell primitives of the host OS on which the orchestrator runs.
+  k) As part of the configuration, the orchestrator will take an input on the number of threads it should be run with. 
+  l) If a command A and B needs to be run, and A depends on B, and A's invocation of B uses the same parameters as the standalone invocation of B, B will be run two times, once as part of invocation of A, and the second time standalone. 
+  m) Optimizing for peak throughput of commands executed is not in scope for now. 
+  -----new assumpitons since the last time the assumptions were reviewed--------
+  n) The commands will be called with the credentials of the orchestrator. Using seperate credentials for invocation could be part of next release.
+  o) It is assumed that the interdependencies are not cyclic
+  p) It is assumed that commands are specified as part of a config file, in future this could be enhanced to get them over a network
+  q) If a command A depends on B, then for stats purpose, command is marked in progress when B starts and completed when A finishes.
+  r) It is assumed that performance of the end 2 end system is an important aspect that should be kept in mind while designing the system.
+
+--------Answers to asked questions------------------  
+a. Does the orchestrator need to interact with any other systems or subsystems? 
+[No. It can be an independent entity.]
+
+b. Who are the users who will use it and how does it help them in realizing their end 2 end flows
+[For the purpose of this exercise, you can assume the end users to be developers themselves, who need to automate simple command sequences.]
+
+c. Can the third party libraries used by the orchestrator have a GPL license or a more commercial friendly license is required?
+[Yes, as long as the license is permissive. MIT/Apache2.0/BSD/GPLv2/CC are all good. Please stay away from GPLv3.]
+
+d. Does the output of the command execution need to be saved or is the completion status in terms of passed/failed/pending enough?
